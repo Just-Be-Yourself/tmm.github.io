@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+        <!-- 使用MethodInvokingJobDetailFactoryBean，任务类可以不实现Job接口，通过targetMethod指定调用方法-->
+
+    <context:component-scan base-package="com.test.springquartz" />
+
+    <!--<bean id="taskJob" class="com.test.springquartz.DataConversionTask"/>-->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!--false表示等上一个任务执行完后再开启新的任务-->
+        <property name="concurrent" value="false"/>
+        <property name="targetObject"><ref bean="taskJob"/></property>
+        <property name="targetMethod"><value>run</value></property>
+    </bean>
+        <!--  调度触发器 -->
+    <bean id="myTrigger"
+      class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail"> <ref bean="jobDetail" /></property>
+        <property name="cronExpression"><value>0/5 * * * * ?</value></property>
+    </bean>
+    <bean id="simpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail" />
+        <property name="startDelay" value="0" /><!--调度工厂实例化后，经过0秒开始执行调度-->
+        <property name="repeatInterval" value="5000" /><!--每5秒调度一次-->
+    </bean>
+    <!-- 调度工厂 -->
+    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+         <list>
+             <!--<ref bean="myTrigger"/>-->
+            <ref bean ="simpleTrigger"></ref>
+        </list>
+        </property>
+    </bean>
+</beans>
